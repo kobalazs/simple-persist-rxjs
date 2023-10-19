@@ -1,5 +1,5 @@
 import { PersistConfig, JsonMiddleware, Persistor } from '@simple-persist/core';
-import { BehaviorSubject, Subject, tap } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 
 const defaultConfig: Required<PersistConfig> = {
   keygens: [],
@@ -15,21 +15,41 @@ export const PersistSubject = (config?: PersistConfig) => (target: any, memberNa
   });
 
   let subject: Subject<any> | BehaviorSubject<any> = target[memberName];
+  let subscription: Subscription;
 
   Object.defineProperty(target, memberName, {
     set: (newSubject: any) => {
-      persistor.delete();
+      // Check type
+      if (!(newSubject instanceof Subject)) {
+        throw new TypeError(`PersistSubject() only accepts Subject or BehaviorSubject, received ${typeof newSubject} instead.`);
+      }
+
+      // Clear up previous state
+      if (subject) {
+        persistor.delete();
+        subscription?.unsubscribe();
+      }
+
+      // Set up new state
       subject = newSubject;
-      if (!Object.prototype.hasOwnProperty.call(subject, 'value') || (subject as BehaviorSubject<any>).value === undefined) {
-        subject.next(persistor.get());
+      subscription = subject.subscribe((value) => {
+        if (value === undefined) {
+          persistor.delete();
+        } else {
+          persistor.set(value);
+        }
+      });
+
+      // Load or set initial value
+      if (!(subject instanceof BehaviorSubject) || subject.value === undefined) {
+        const persistedValue = persistor.get();
+        if (persistedValue !== undefined && persistedValue !== null) {
+          subject.next(persistedValue);
+        }
+      } else {
+        persistor.set(subject.value);
       }
     },
-    get: () => subject.pipe(tap((value) => {
-      if (value === undefined) {
-        persistor.delete();
-      } else {
-        persistor.set(value);
-      }
-    })),
+    get: () => subject,
   });
 };
