@@ -1,6 +1,6 @@
 {
   "name": "@simple-persist/rxjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RxJS decorator for SimplePersist",
   "keywords": [
     "persist",
