@@ -21,7 +21,7 @@ export const PersistSubject = (config?: PersistConfig) => (target: any, memberNa
     set: (newSubject: any) => {
       // Check type
       if (!(newSubject instanceof Subject)) {
-        throw new TypeError(`PersistSubject() only accepts Subject or BehaviorSubject, received ${typeof newSubject} instead.`);
+        throw new TypeError(`PersistSubject() only accepts Subject or BehaviorSubject, received ${newSubject.constructor.name} instead.`);
       }
 
       // Clear up previous state
