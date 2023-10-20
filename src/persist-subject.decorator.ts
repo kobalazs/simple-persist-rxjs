@@ -14,7 +14,7 @@ export const PersistSubject = (config?: PersistConfig) => (target: any, memberNa
     storage: config?.storage ?? defaultConfig.storage,
   });
 
-  let subject: Subject<any> | BehaviorSubject<any> = target[memberName];
+  let subject: Subject<any> | BehaviorSubject<any>;
   let subscription: Subscription;
 
   Object.defineProperty(target, memberName, {
@@ -32,13 +32,6 @@ export const PersistSubject = (config?: PersistConfig) => (target: any, memberNa
 
       // Set up new state
       subject = newSubject;
-      subscription = subject.subscribe((value) => {
-        if (value === undefined) {
-          persistor.delete();
-        } else {
-          persistor.set(value);
-        }
-      });
 
       // Load or set initial value
       if (!(subject instanceof BehaviorSubject) || subject.value === undefined) {
@@ -49,6 +42,15 @@ export const PersistSubject = (config?: PersistConfig) => (target: any, memberNa
       } else {
         persistor.set(subject.value);
       }
+
+      // Subscribe to changes
+      subscription = subject.subscribe((value) => {
+        if (value === undefined) {
+          persistor.delete();
+        } else {
+          persistor.set(value);
+        }
+      });
     },
     get: () => subject,
   });

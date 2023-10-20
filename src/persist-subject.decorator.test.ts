@@ -10,6 +10,10 @@ class TestBed {
   @PersistSubject() public foo?: Subject<any> | BehaviorSubject<any>;
 }
 
+class EarlyTestBed {
+  @PersistSubject() public foo = new BehaviorSubject(undefined);
+}
+
 describe('@PersistSubject()', () => {
   let testBed: TestBed;
 
@@ -45,6 +49,14 @@ describe('@PersistSubject()', () => {
     testBed.foo = new BehaviorSubject(undefined);
     expect(localStorageSetItemSpy).toHaveBeenCalledWith('foo', '"bar"');
     expect((testBed.foo as BehaviorSubject<any>).value).toBe('bar');
+  });
+
+  it('should load initial value for empty BehaviorSubject set early', () => {
+    localStorageGetItemSpy.mockReturnValue('"bar"');
+    const earlyTestBed = new EarlyTestBed();
+    expect(localStorageGetItemSpy).toHaveBeenCalledWith('foo');
+    expect(localStorageRemoveItemSpy).not.toHaveBeenCalled();
+    expect((earlyTestBed.foo as BehaviorSubject<any>).value).toBe('bar');
   });
 
   it('should set initial value for non-empty BehaviorSubject', () => {
