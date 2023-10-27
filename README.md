@@ -15,7 +15,7 @@ npm install @simple-persist/rxjs
 ## Quick start
 Add `@PersistSubject()` decorator to a Subject or BehaviorSubject class property:
 ```ts
-import { PersistSubject } from '@simple-persist/core';
+import { PersistSubject } from '@simple-persist/rxjs';
 import { BehaviorSubject, Subject } from 'rxjs';
 
 class Foo {
